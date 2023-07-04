@@ -38,9 +38,38 @@ RUN TERRAFORM_VERSION=$(curl -s https://checkpoint-api.hashicorp.com/v1/check/te
 </details>
 
 <details>
-<summary>Introduction</summary>
+<summary>Gitlab-Pipeline-Terraformer-Import</summary>
 <br>
+
+  ```
+    stages:
+  - import
+
+import_tf_resources:
+  stage: import
+  image: ecr.ap-southeast-1.amazonaws.com/terraform-runner:v1
+  before_script:
+    - export http_proxy=http://11.1.1.1:80
+    - export https_proxy=http://2.2.2.2.2:80 
+  script:
+    - apt-get update -y
+    - apt-get install -y curl jq
+    - aws sts get-caller-identity  # Check if AWS credentials are working
+    - mkdir -p ~/.aws
+    # - echo -e "[profile developer]\nrole_arn = arn:aws:iam::123:role/cdk-role-01\ncredential_source = Ec2InstanceMetadata" > ~/.aws/config
+    # # Set AWS_PROFILE environment variable
+    # - export AWS_PROFILE=developer
+    - mkdir -p /root/.terraform.d/plugins/linux_amd64
+    - terraform init
+    - terraformer import aws --resources=s3 --filter=s3=s3-bucket-name --regions=ap-southeast-1 --profile ""
   
+  artifacts:
+    paths:
+      - generated/
+    expire_in: 1 week
+
+  ```
+      
 </details>
 
 <details>
