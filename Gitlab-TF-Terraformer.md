@@ -73,6 +73,73 @@ import_tf_resources:
 </details>
 
 <details>
+<summary>Remote s3 backend-dynamodb table-locks</summary>
+<br>
+
+  ```
+    #main.tf
+    terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.0"
+    }
+  }
+  required_version = ">= 0.13"
+}
+
+provider "aws" {
+  region = "ap-southeast-1" # change as per your region
+}
+
+resource "aws_s3_bucket" "terraform_state" {
+  bucket = "terraform-state-01" # replace with your unique bucket name
+  versioning {
+    enabled = true
+  }
+
+  # Enable server-side encryption by default
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+}
+
+resource "aws_dynamodb_table" "dynamodb_terraform_state_lock" {
+  name         = "dynamodb-terraform-01"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "LockID"
+
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
+}
+
+terraform {
+  backend "s3" {
+    bucket         = "terraform-state-01"
+    key            = "state"
+    region         = "ap-southeast-1" 
+    dynamodb_table = "dynamodb-terraform-01"
+    encrypt        = true
+  }
+}
+
+
+  ```
+</details>
+
+<details>
+<summary>Introduction</summary>
+<br>
+  
+</details>
+
+<details>
 <summary>Introduction</summary>
 <br>
   
